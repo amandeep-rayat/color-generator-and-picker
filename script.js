@@ -1,14 +1,166 @@
 const hex = [1, 2, 3, 4, 5, 6, 7, 8, 9, "A", "B", "C", "D", "E", "F"];
 
-let btn;
-let color;
-let hint;
-const text = document.querySelector("#text");
-const btn1 = document.querySelector("#opt");
-const btn2 = document.querySelector("#r-opt");
-const container = document.querySelector(".container");
-const table = document.querySelector(".table");
-let copy, format, way,ops;
+const color = document.createElement("div");
+const main = document.querySelector("main");
+const text = document.createElement("h2");
+text.innerHTML = "Press Space to generate a random color";
+const heading = document.createElement("h2");
+const btns = document.querySelectorAll(".opt");
+const colorcontainer = document.createElement("div");
+const colorops = document.createElement("div");
+colorops.id = "colorops";
+colorcontainer.id = "colorcontainer";
+const ops = document.createElement("div");
+const container = document.createElement("div");
+const colorTableBody = document.createElement("table");
+const table = document.createElement("div");
+table.id = "table";
+const entries = document.createElement("span");
+const copy = document.createElement("button");
+const form = document.createElement("button");
+copy.id = "copy";
+form.id = "form";
+const prev = document.createElement("button");
+const next = document.createElement("button");
+const search = document.createElement("input");
+const change = document.createElement("button");
+search.id = "searchInput";
+change.innerHTML = "Click Here";
+change.classList.add("opt");
+prev.innerHTML = "<=";
+next.innerHTML = "=>";
+icon = { 'size': '30', 'fill': 'white', 'stroke': 'white', 'strokeWidth': '2'};
+copy.innerHTML = `<svg class="btn" id="copy" width="${icon.size}" height="${icon.size}" viewBox="0 0 ${icon.size} ${icon.size}" 
+xmlns="http://www.w3.org/2000/svg" stroke="${icon.stroke}" stroke-width="${icon.strokeWidth}">
+<line x1="8" y1="8" x2="8" y2="22" />
+<line x1="8" y1="8" x2="22" y2="8" />
+<line x1="8" y1="22" x2="22" y2="22" />
+<line x1="22" y1="8" x2="22" y2="22" />
+<line x1="12" y1="5" x2="25" y2="5" />
+<line x1="25" y1="5" x2="25" y2="20" />
+</svg>`;
+form.innerHTML = `<svg class="btn" id="format" xmlns="http://www.w3.org/2000/svg" 
+viewBox="0 0 ${icon.size} ${icon.size}" width="${icon.size}" height="${icon.size}" 
+stroke="${icon.stroke}" fill="${icon.fill}" stroke-width="${icon.strokeWidth}">
+<circle cx="15" cy="15" r="10" fill="none"/>
+<path d="M 15 5 a 2 2 1 1 1 0 20 Z" />
+</svg>`;
+let sel = 0;
+let tabledata = `
+<caption>W3C Named Colors</caption>
+<thead>
+    <th>S. no.</th>
+    <th style="width:215px">Color Name</th>
+    <th>Hex Code</th>
+    <th>Preview</th>
+</thead>
+`;
+color.style['font-size'] = '20px';
+container.classList.add("container");
+container.style['backgroundColor'] = 'black';
+main.appendChild(container);
+container.appendChild(text);
+container.appendChild(change)
+container.appendChild(colorcontainer);
+colorcontainer.appendChild(color);
+colorcontainer.appendChild(colorops);
+
+let hexColor = "#";
+
+function getRandomColor() {
+    hexColor = "#";
+    for (let i = 0; i < 6; i++) {
+        hexColor += hex[getRandomNumber()];
+    }
+    return hexColor;
+}
+
+function changeColor() {
+    hexColor = getRandomColor();
+    color.textContent = "BackGround Color = " + hexColor;
+    document.body.style.backgroundColor = hexColor;
+    colorops.appendChild(copy);
+    colorops.appendChild(form);
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+        changeColor();
+        // change.removeEventListener('click', changeColor);
+        console.log("Space Pressed");
+    }
+});
+
+change.addEventListener('click', () => {
+    changeColor();
+    console.log("Button Clicked");
+});
+
+copy.addEventListener('click', () => {
+    const el = document.createElement('textarea');
+    let colorVal = color.textContent.substring();
+    el.value = colorVal.substring(18, colorVal.length);
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    alert("Copied to clipboard");
+});
+
+form.addEventListener('click', () => {
+    // let colorVal = color.textContent.substring();
+    const { r, g, b } = hexToRgb(hexColor);
+    const { h, s, l } = rgbToHsl(r, g, b);
+    sel = (sel + 1) % 3;
+    if (sel == 0) {
+        color.textContent = "BackGround Color = " + hexColor;
+    } else if (sel == 1) {
+        color.textContent = "BackGround Color = " + `RGB(${r}, ${g}, ${b})`;
+    } else {
+        color.textContent = "BackGround Color = " + `HSL(${h}, ${s}%, ${l}%)`;
+    }
+
+});
+
+function getRandomNumber() {
+    return Math.floor(Math.random() * hex.length);
+}
+
+function rgbToHex(r, g, b) {
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function hexToRgb(hex) {
+    hex = hex.replace(/^#/, '');
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return { r, g, b };
+}
+
+function rgbToHsl(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max == min) {
+        h = s = 0; // achromatic
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    h = Math.round(h * 360);
+    s = Math.round(s * 100);
+    l = Math.round(l * 100);
+    return { h, s, l };
+}
+
 
 const w3cNamedColors = {
     "aliceblue": "#F0F8FF",
@@ -162,263 +314,91 @@ const w3cNamedColors = {
 };
 
 const colors = Object.keys(w3cNamedColors);
-let sel = true;
 
-function getcolor() {
-    hexColor = "#";
-    set();
-    ops = document.querySelector(".ops");
-    ops.classList.remove("hidden");
-    for (let i = 0; i < 6; i++) {
-        hexColor += hex[getRandomNumber()];
+function generateTableRows(s, e, tab) {
+    colorTableBody.innerHTML = tabledata;
+    for (let i = s; i < e; i++) {
+        const colorName = colors[tab[i]];
+        const hexCode = w3cNamedColors[colorName];
+        const row = colorTableBody.insertRow();
+        row.insertCell().textContent = i + 1;
+        row.insertCell().textContent = colorName;
+        row.insertCell().textContent = hexCode;
+        let col = row.insertCell()
+        col.classList.add('color-preview');
+        col.style.backgroundColor = hexCode;
     }
-    color = document.querySelector(".color");
-    hint = document.querySelector("#hint");
-    color.textContent = "BackGround Color = " + hexColor;
-    document.body.style.backgroundColor = hexColor;
+    entries.textContent = `Showing ${s + 1} to ${e} of ${tab.length} entries`;
 }
-
-let hexColor = "#";
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-        getcolor();
-    }
-});
-
-
-
-let tabl = [], temp = [];
+let i = 0, j = 10;
+let tabl = [];
 for (let k = 0; k < colors.length; k++) {
     tabl.push(k);
 }
 
-btn1.addEventListener('click', () => {
-    temp = [];
-    let i = 0, j = 10;
-    btn2.classList.remove("y");
-    btn1.classList.add("y");
-    container.style.height = "100%";
-    container.style.backgroundColor = "white";
-    document.body.style.backgroundColor = "white";
-
-    container.innerHTML = `
-    <h2 style="color: black;" class="heading">Color Names Table</h2>
-    <div id="att">
-    <input type="text" id="searchInput" placeholder="Search for color...">
-    <div style="display : inline">
-        <button class="page" id="prev">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24"
-                height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" color="black">
-                <path d="M19 12H6M12 5l-7 7 7 7" />
-            </svg>
-        </button>
-        <button class="page" id="next">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24"
-                height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" color="black">
-                <path d="M5 12h13M12 5l7 7-7 7" />
-            </svg>
-        </button>
-        </div>
-    </div>
-    <table id="colorTable">
-        <thead>
-            <tr>
-                <th>S. no.</th>
-                <th style="width:215px">Color Name</th>
-                <th>Hex Code</th>
-                <th>Preview</th>
-            </tr>
-        </thead>
-        <tbody id="colorTableBody"></tbody>
-    </table>`;
-    container.style.width = "100%";
+btns[0].addEventListener('click', () => {
     generateTableRows(i, j, tabl);
-    const search = document.getElementById('searchInput');
-    const prev = document.querySelector("#prev");
-    const next = document.querySelector("#next");
-    let table = tabl;
-    prev.addEventListener('click', () => {
-        if (i == 0) {
-            return;
-        }
-        i = Math.max(0, i - 10);
-        if (j == table.length - 1) j -= (table.length - 1) % 10;
-        else j = Math.min(colors.length - 1, j - 10 - j % 10);
-        colorTableBody.innerHTML = '';
-        generateTableRows(i, j, table);
-    });
+    btns[0].classList.add('y');
+    btns[1].classList.remove('y');
+    container.style['backgroundColor'] = 'white';
+    table.appendChild(search);
+    table.appendChild(entries);
+    table.appendChild(prev);
+    table.appendChild(next);
+    // table.appendChild(table);
+    table.appendChild(colorTableBody);
+    container.replaceChildren(table);
+});
 
-    next.addEventListener('click', () => {
-        if (j == colors.length - 1) {
-            return;
-        }
-        i = Math.min(table.length - 1, i + 10);
-        j = Math.min(table.length - 1, j + 10);
-        colorTableBody.innerHTML = '';
-        generateTableRows(i, j, table);
-    });
+text.innerHTML = "Press Space to generate a random color Or";
+color.style['color'] = 'white';
 
-    search.addEventListener('input', () => {
-        let s = search.value;
-        if (s == "") {
-            i = 0;
-            j = 10;
+btns[1].addEventListener('click', () => {
+    btns[1].classList.add('y');
+    btns[0].classList.remove('y');
+    container.replaceChildren(text);
+    container.appendChild(text);
+    container.appendChild(change)
+    container.appendChild(colorcontainer);
+    colorcontainer.appendChild(color);
+    colorcontainer.appendChild(colorops);
+    container.style['backgroundColor'] = 'black';
+});
+
+prev.addEventListener('click', () => {
+    if (i == 0) {
+        return;
+    }
+    i = Math.max(0, i - 10);
+    if (j == colors.length - 1) j -= (colors.length - 1) % 10;
+    else j = Math.min(colors.length - 1, j - 10 - j % 10);
+    colorTableBody.innerHTML = '';
+    generateTableRows(i, j, tabl);
+});
+next.addEventListener('click', () => {
+    if (j == colors.length - 1) {
+        return;
+    }
+    i = Math.min(colors.length - 1, i + 10);
+    j = Math.min(colors.length - 1, j + 10);
+    colorTableBody.innerHTML = '';
+    generateTableRows(i, j, tabl);
+});
+search.addEventListener('keyup', () => {
+    let s = search.value;
+        let temp = [];
+        for (let k = 0; k < colors.length; k++) {
+            if (colors[k].toLowerCase().includes(s.toLowerCase()) || w3cNamedColors[colors[k]].toLowerCase().includes(s.toLowerCase())) {
+                temp.push(k);
+            }
+        }
+        if (temp.length == 0) {
             colorTableBody.innerHTML = '';
-            table = tabl;
-            generateTableRows(i, j, table);
         }
         else {
-            temp = [];
-            for (let k = 0; k < colors.length; k++) {
-                if (colors[k].toLowerCase().includes(s.toLowerCase()) || w3cNamedColors[colors[k]].toLowerCase().includes(s.toLowerCase())) {
-                    temp.push(k);
-                }
-            }
-            if (temp.length == 0) {
-                colorTableBody.innerHTML = '';
-            }
-            else {
-                i = 0;
-                j = Math.min(temp.length - 1, 10);
-                colorTableBody.innerHTML = '';
-                generateTableRows(i, j, table = temp);
-            }
+            i = 0;
+            j = Math.min(temp.length, 10);
+            colorTableBody.innerHTML = '';
+            generateTableRows(i, j, temp);
         }
-    });
-
-})
-
-btn2.addEventListener('click', () => {
-    btn1.classList.remove("y");
-    btn2.classList.add("y");
-    call();
 });
-function set(){
-        copy = document.querySelector("#copy");
-        form = document.querySelector("#format");
-    
-        copy.addEventListener('click', () => {
-            navigator.clipboard.writeText(color.innerHTML.substring(18));
-            let mod = document.createElement("div");
-            mod.classList.add("modal");
-            document.body.appendChild(mod);
-            mod.innerHTML = "Copied to clipboard";
-            setTimeout(() => {
-                mod.remove();
-            }, 5000);
-        });
-    
-        form.addEventListener('click', () => {
-            let colorVal = color.textContent.substring();
-            const { r, g, b } = hexToRgb(hexColor);
-            const { h, s, l } = rgbToHsl(r, g, b);
-            way = (way + 1) % 3;
-            if (way == 0) {
-                color.textContent = "BackGround Color = " + hexColor;
-            } else if (way == 1) {
-                color.textContent = "BackGround Color = " + `RGB(${r}, ${g}, ${b})`;
-            } else {
-                color.textContent = "BackGround Color = " + `HSL(${h}, ${s}%, ${l}%)`;
-            }
-    
-        });
-    
-}
-function call() {
-
-    container.style.height = "60%";
-    container.style.width = "50%";
-    container.style.backgroundColor = "black";
-    document.body.style.backgroundColor = "white";
-    container.innerHTML = `
-    <h2>
-        <p id="hint">To Generate Random BackGround Color Hit Space or <br> <button class="btn btn-hero" id="btn">Click Here!</button></p><span class="color"></span>
-    </h2>
-    <div class="ops hidden">
-        <svg id="copy" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-            <line x1="10" y1="10" x2="10" y2="30" stroke="grey" stroke-width="2" />
-            <line x1="10" y1="10" x2="30" y2="10" stroke="grey" stroke-width="2" />
-            <line x1="10" y1="30" x2="30" y2="30" stroke="grey" stroke-width="2" />
-            <line x1="30" y1="10" x2="30" y2="30" stroke="grey" stroke-width="2" />
-            <line x1="35" y1="5" x2="35" y2="25" stroke="grey" stroke-width="2" />
-            <line x1="15" y1="5" x2="35" y2="5" stroke="grey" stroke-width="2" />
-        </svg>
-        <svg id="format" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 45" width="40" height="40">
-            <circle cx="20" cy="20" r="15" fill="none" stroke="grey" stroke-width="2" />
-            <path d="M 20 6 a 2 2 1 1 1 1 28 Z" fill="grey" />
-        </svg>
-
-    </div>
-    `;
-    btn = document.getElementById('btn');
-    btn.addEventListener('click', () => { getcolor(); });
-    way = 0;
-   
-}
-call();
-function getRandomNumber() {
-    return Math.floor(Math.random() * hex.length);
-}
-
-function rgbToHex(r, g, b) {
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-
-function hexToRgb(hex) {
-    hex = hex.replace(/^#/, '');
-    const bigint = parseInt(hex, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return { r, g, b };
-}
-
-function rgbToHsl(r, g, b) {
-    r /= 255, g /= 255, b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-    if (max == min) {
-        h = s = 0; // achromatic
-    } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-    h = Math.round(h * 360);
-    s = Math.round(s * 100);
-    l = Math.round(l * 100);
-    return { h, s, l };
-}
-
-
-
-
-
-// Function to generate table rows based on search input
-function generateTableRows(s, e, tab) {
-    const colorTableBody = document.getElementById('colorTableBody');
-    colorTableBody.innerHTML = '';
-    for (let i = s; i < e; i++) {
-        const colorName = colors[tab[i]];
-        const hexCode = w3cNamedColors[colorName];
-        const row = `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${colorName}</td>
-            <td>${hexCode}</td>
-            <td><div class="color-preview" style="background-color: ${hexCode}; width: 100%;"></div></td>
-          </tr>
-        `;
-        colorTableBody.innerHTML += row;
-    }
-}
-
-
-
